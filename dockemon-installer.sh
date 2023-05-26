@@ -32,7 +32,6 @@ HARBOR_USER="admin"  # Harbor用户名
 HARBOR_PASSWD="Harbor12345"  # Harbor密码
 CONTAINERD_SOCK=/run/k3s/containerd/containerd.sock
 CONTAINERD_NAMESPACE=k8s.io
-EXPORT_DIR=images  # 镜像导出目录名
 EOF
     echo "DOCKEMON安装完成!!"
     echo
@@ -111,23 +110,20 @@ save() {
     echo "导出镜像 开始"
     echo "************************************************"
     echo
-    mkdir ${EXPORT_DIR}
-    cat ${IMG_DEST} | while read img_name
+    cat ${IMG_SRC} | while read img_name
     do
         # 取镜像名称未尾(不含仓库名)
         suffix=${img_name##*/}
         # 文件名(将:替换为-)
-        file_name=${suffix/:/-}.tar
+        file_name=${suffix/:/-}.tar.gz
         echo "正在导出: $file_name"
-        docker save -o ${EXPORT_DIR}/$file_name $img_name
+        docker save $img_name | gzip > $file_name
         if [ $? -ne 0 ]; then echo "执行失败，程序终止！"; exit; fi
         echo
     done
+    echo "正在导出镜像清单"
+    cat $IMG_SRC>image-list.txt
 
-    echo "正在打包"
-    timestamp=`date "+%Y%m%d%H%M%S"`
-    tar -zcvf ${EXPORT_DIR}_${timestamp}.tar.gz ${EXPORT_DIR}
-    if [ $? -ne 0 ]; then echo "执行失败，程序终止！"; exit; fi
     echo "导出镜像 完成!"
     echo
 }
@@ -137,10 +133,10 @@ load() {
     echo "导入镜像 开始"
     echo "************************************************"
     echo
-    echo "遍历 ${EXPORT_DIR}/ 目录下所有镜像"
-    for file_name in ${EXPORT_DIR}/*
+    echo "遍历当前目录下所有镜像"
+    for file_name in ./*
     do
-        if [ -f $file_name ]; then
+        if [[ -f $file_name && $file_name == *gz ]]; then
             echo 正在导入: $file_name
             if [ ${NERDCTL_FLAG} -eq 0 ]; then
                 nerdctl --host=${CONTAINERD_SOCK} --namespace ${CONTAINERD_NAMESPACE} load -i $file_name
@@ -235,7 +231,7 @@ tag_group() {
 login() {
     echo "正在登录Harbor仓库..."
     if [ ${NERDCTL_FLAG} -eq 0 ]; then
-        nerdctl login ${HARBOR_DOMAIN} -u ${HARBOR_USER} -p ${HARBOR_PASSWD}
+        nerdctl login ${HARBOR_DOMAIN} -u ${HARBOR_USER} -p ${HARBOR_PASSWD} --insecure-registry
         if [ $? -ne 0 ]; then echo "执行失败，程序终止！"; exit; fi
     else
         docker login ${HARBOR_DOMAIN} -u ${HARBOR_USER} -p ${HARBOR_PASSWD}
