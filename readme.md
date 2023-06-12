@@ -6,6 +6,8 @@
 同时支持**一键安装Chart**、**一键推送镜像**等快捷操作
 
 
+## GitHub下载地址
+https://github.com/xiiiblue/dockemon
 
 ## 系统要求
 
