@@ -45,7 +45,7 @@ jobs:
         id: tag
         run: |
           echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
-          cat readme.md > release.txt
+          # cat readme.md > release.txt
           echo "::set-output name=status::success"
 
       - name: Upload to release
@@ -55,5 +55,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
-          body_path: release.txt
+          # body_path: release.txt
           files: dockemon-installer.sh.gz
