@@ -32,6 +32,7 @@ HARBOR_USER="admin"  # Harbor用户名
 HARBOR_PASSWD="Harbor12345"  # Harbor密码
 CONTAINERD_SOCK=/run/k3s/containerd/containerd.sock
 CONTAINERD_NAMESPACE=k8s.io
+PLATFORM=linux/amd64
 EOF
     echo "DOCKEMON安装完成!!"
     echo
@@ -74,8 +75,8 @@ pull() {
     cat ${IMG_SRC} | while read raw_name
     do
         if [ ! -z $raw_name ]; then
-            echo 正在拉取: $raw_name
-            docker pull $raw_name
+            echo 正在拉取: $raw_name 架构: ${PLATFORM}
+            docker pull --platform ${PLATFORM} $raw_name
             if [ $? -ne 0 ]; then echo "执行失败，程序终止！"; exit; fi
             echo ""
         fi
