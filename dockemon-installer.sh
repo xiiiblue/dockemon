@@ -33,6 +33,7 @@ HARBOR_PASSWD="Harbor12345"  # Harbor密码
 CONTAINERD_SOCK=/run/k3s/containerd/containerd.sock
 CONTAINERD_NAMESPACE=k8s.io
 PLATFORM=linux/amd64
+GZIP_BIN=gzip
 EOF
     echo "DOCKEMON安装完成!!"
     echo
@@ -118,7 +119,7 @@ save() {
         # 文件名(将:替换为-)
         file_name=${suffix/:/-}.tar.gz
         echo "正在导出: $file_name"
-        docker save $img_name | gzip > $file_name
+        docker save $img_name | ${GZIP_BIN} > $file_name
         if [ $? -ne 0 ]; then echo "执行失败，程序终止！"; exit; fi
         echo
     done
